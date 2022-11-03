@@ -2,7 +2,6 @@ import argparse
 import json
 import os
 
-
 import requests
 import psycopg2
 
@@ -34,6 +33,7 @@ def poke_berries(args):
         return berry_blob    
     api_blob = get_berries_api(args.id or args.name)
     insert_berry_into_berries(cur, conn, api_blob)
+    conn.close()
     return api_blob
 
 
@@ -53,9 +53,11 @@ def get_berries_blob(cur, berry_id=None, berry_name=None):
 
 def get_berries_api(berry_id_or_name):
     response = requests.get(f"https://pokeapi.co/api/v2/berry/{berry_id_or_name}")
-    blob = response.json()
-    return blob
-
+    if response:
+        blob = response.json()
+        return blob
+    else:
+        raise AttributeError("ID not in API")
 
 def insert_berry_into_berries(cur, conn, blob):
     berry_id = blob["id"]
