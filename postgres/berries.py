@@ -24,7 +24,7 @@ def connect_to_database():
 
 
 def poke_berries(args):
-    if (args.id and args.name) or (not args.id and args.name):
+    if (args.id and args.name) or (not args.id and not args.name):
         raise ArgumentError("need to input one argument") 
     
     cur, conn = connect_to_database()
@@ -53,11 +53,12 @@ def get_berries_blob(cur, berry_id=None, berry_name=None):
 
 def get_berries_api(berry_id_or_name):
     response = requests.get(f"https://pokeapi.co/api/v2/berry/{berry_id_or_name}")
-    if response:
+    try:
         blob = response.json()
         return blob
-    else:
-        raise AttributeError("ID not in API")
+    except requests.exceptions.JSONDecodeError:
+        raise ArgumentError("ID or name not in API") 
+
 
 def insert_berry_into_berries(cur, conn, blob):
     berry_id = blob["id"]
